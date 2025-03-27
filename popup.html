@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 20px;
+      width: 350px;
+      background-color: #f8f9fa;
+      color: #2c3e50;
+    }
+
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      font-size: 1.5em;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    h3 {
+      color: #2c3e50;
+      margin: 20px 0 15px;
+      font-size: 1.2em;
+      font-weight: 500;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #495057;
+      font-weight: 500;
+      font-size: 0.9em;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #e1e4e8;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: all 0.2s;
+      box-sizing: border-box;
+      background: #f8f9fa;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #4a90e2;
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+      background: white;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+    }
+
+    button {
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #357abd;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    #reminder-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .reminder-item {
+      background-color: white;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      transition: all 0.2s;
+    }
+
+    .reminder-item:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .reminder-content {
+      flex: 1;
+      margin-right: 10px;
+    }
+
+    .reminder-title {
+      font-weight: 500;
+      margin-bottom: 5px;
+      color: #2c3e50;
+    }
+
+    .countdown {
+      font-size: 0.85em;
+      color: #666;
+      font-family: monospace;
+      margin: 5px 0;
+    }
+
+    .recurring-badge {
+      display: inline-block;
+      font-size: 0.75em;
+      color: #4a90e2;
+      background: rgba(74, 144, 226, 0.1);
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-top: 5px;
+    }
+
+    .delete-btn {
+      background-color: #ff4757;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      width: auto;
+      height: 24px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+    }
+
+    .delete-btn:hover {
+      background-color: #ff6b81;
+    }
+
+    .section-divider {
+      height: 1px;
+      background: #e1e4e8;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h2>Set a Reminder</h2>
+  
+  <div class="form-group">
+    <label for="reminder">Reminder:</label>
+    <input type="text" id="reminder" placeholder="e.g. Drink water">
+  </div>
+  
+  <div class="form-group">
+    <label for="time">Set time (minutes):</label>
+    <input type="number" id="time" placeholder="5">
+  </div>
+
+  <div class="form-group">
+    <div class="checkbox-group">
+      <input type="checkbox" id="recurring">
+      <label for="recurring">Make this a recurring reminder</label>
+    </div>
+    <div id="recurring-options" style="display: none;">
+      <label for="recurring-interval">Repeat every (minutes):</label>
+      <input type="number" id="recurring-interval" placeholder="60">
+    </div>
+  </div>
+  
+  <button id="set-reminder">Add Reminder</button>
+  
+  <div class="section-divider"></div>
+  
+  <h3>Scheduled Reminders</h3>
+  <ul id="reminder-list"></ul>
+
+  <script>
+    // Show/hide recurring options based on checkbox
+    document.getElementById('recurring').addEventListener('change', (e) => {
+      document.getElementById('recurring-options').style.display = e.target.checked ? 'block' : 'none';
+    });
+  </script>
+  <script src="popup.js"></script>
+</body>
+</html>
