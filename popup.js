@@ -1,29 +1,54 @@
 document.getElementById('set-reminder').addEventListener('click', () => {
     const reminderText = document.getElementById('reminder').value;
-    const timeInMinutes = parseInt(document.getElementById('time').value);
-    const isRecurring = document.getElementById('recurring').checked;
-    const recurringInterval = document.getElementById('recurring-interval').value;
-  
-    if (reminderText && timeInMinutes > 0) {
-      const reminderTime = Date.now() + timeInMinutes * 60 * 1000;
-      const reminder = { 
-        text: reminderText, 
-        time: reminderTime,
-        isRecurring: isRecurring,
-        recurringInterval: isRecurring ? parseInt(recurringInterval) : null,
-        id: Date.now().toString()
-      };
-  
-      chrome.storage.local.get(['reminders'], (result) => {
-        const reminders = result.reminders || [];
-        reminders.push(reminder);
-        chrome.storage.local.set({ reminders });
-  
-        // Set Chrome alarm
-        chrome.alarms.create(reminder.id, { when: reminderTime });
-        displayReminders();
-      });
+    const isTimer = document.querySelector('.time-option[data-option="timer"]').classList.contains('active');
+    let reminderTime;
+
+    if (isTimer) {
+      const timeInMinutes = parseInt(document.getElementById('time').value);
+      if (!reminderText || timeInMinutes <= 0) return;
+      reminderTime = Date.now() + timeInMinutes * 60 * 1000;
+    } else {
+      const selectedDate = document.getElementById('selected-date');
+      const selectedTime = document.getElementById('selected-time');
+      
+      if (!reminderText || !selectedDate.dataset.value || !selectedTime.dataset.value) {
+        alert('Please select both date and time');
+        return;
+      }
+
+      // Combine date and time into a single timestamp
+      const [year, month, day] = selectedDate.dataset.value.split('-');
+      const [hours, minutes] = selectedTime.dataset.value.split(':');
+      reminderTime = new Date(year, month - 1, day, hours, minutes).getTime();
+      
+      // Check if the selected time is in the past
+      if (reminderTime <= Date.now()) {
+        alert('Please select a future date and time');
+        return;
+      }
     }
+
+    const isRecurring = document.getElementById('recurring').checked;
+    const recurringInterval = isRecurring ? parseInt(document.getElementById('recurring-interval').value) : null;
+
+    const reminder = { 
+      text: reminderText, 
+      time: reminderTime,
+      isRecurring: isRecurring,
+      recurringInterval: recurringInterval,
+      id: Date.now().toString(),
+      type: isTimer ? 'timer' : 'datetime'
+    };
+
+    chrome.storage.local.get(['reminders'], (result) => {
+      const reminders = result.reminders || [];
+      reminders.push(reminder);
+      chrome.storage.local.set({ reminders });
+
+      // Set Chrome alarm
+      chrome.alarms.create(reminder.id, { when: reminderTime });
+      displayReminders();
+    });
   });
 
   function formatTimeLeft(timeLeft) {
@@ -71,17 +96,22 @@ document.getElementById('set-reminder').addEventListener('click', () => {
         countdown.className = 'countdown';
         updateCountdown(reminder.id, reminder.time);
         
+        const typeBadge = document.createElement('div');
+        typeBadge.className = 'type-badge';
+        typeBadge.textContent = reminder.type === 'timer' ? 'Timer' : 'Calendar';
+        
         const recurringBadge = document.createElement('div');
         recurringBadge.className = 'recurring-badge';
-        recurringBadge.textContent = reminder.isRecurring ? '🔄 Recurring' : '';
+        recurringBadge.textContent = reminder.isRecurring ? 'Recurring' : '';
         
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'delete-btn';
-        deleteBtn.textContent = '×';
+        deleteBtn.textContent = 'X';
         deleteBtn.onclick = () => deleteReminder(reminder.id);
         
         reminderContent.appendChild(title);
         reminderContent.appendChild(countdown);
+        reminderContent.appendChild(typeBadge);
         reminderContent.appendChild(recurringBadge);
         listItem.appendChild(reminderContent);
         listItem.appendChild(deleteBtn);

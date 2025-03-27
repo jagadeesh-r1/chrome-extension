@@ -168,6 +168,114 @@
       background: #e1e4e8;
       margin: 20px 0;
     }
+
+    .time-options {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .time-option {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #e1e4e8;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      background: #f8f9fa;
+    }
+
+    .time-option.active {
+      background: #4a90e2;
+      color: white;
+      border-color: #4a90e2;
+    }
+
+    .time-option:hover {
+      border-color: #4a90e2;
+    }
+
+    .datetime-input {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .datetime-input.active {
+      display: block;
+    }
+
+    .datetime-picker {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .date-picker, .time-picker {
+      flex: 1;
+    }
+
+    .custom-date-input, .custom-time-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #e1e4e8;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: all 0.2s;
+      box-sizing: border-box;
+      background: #f8f9fa;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .date-dropdown, .time-dropdown {
+      display: none;
+      position: absolute;
+      background: white;
+      border: 1px solid #e1e4e8;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      max-height: 200px;
+      overflow-y: auto;
+      width: 100%;
+      margin-top: 5px;
+    }
+
+    .date-dropdown.active, .time-dropdown.active {
+      display: block;
+    }
+
+    .date-option, .time-option {
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .date-option:hover, .time-option:hover {
+      background-color: #f8f9fa;
+    }
+
+    .date-option.selected, .time-option.selected {
+      background-color: #e3f2fd;
+      color: #4a90e2;
+    }
+
+    .calendar-icon, .clock-icon {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.6;
+    }
+
+    .timer-input {
+      display: block;
+    }
+
+    .timer-input.hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -179,8 +287,37 @@
   </div>
   
   <div class="form-group">
-    <label for="time">Set time (minutes):</label>
-    <input type="number" id="time" placeholder="5">
+    <label>Set Reminder Time:</label>
+    <div class="time-options">
+      <div class="time-option active" data-option="timer">Timer</div>
+      <div class="time-option" data-option="datetime">Calendar</div>
+    </div>
+
+    <div class="timer-input">
+      <label for="time">Set time (minutes):</label>
+      <input type="number" id="time" placeholder="5">
+    </div>
+
+    <div class="datetime-input">
+      <div class="datetime-picker">
+        <div class="date-picker">
+          <label>Select Date:</label>
+          <div class="custom-date-input">
+            <span id="selected-date">Select a date</span>
+            <span class="calendar-icon">📅</span>
+          </div>
+          <div class="date-dropdown" id="date-dropdown"></div>
+        </div>
+        <div class="time-picker">
+          <label>Select Time:</label>
+          <div class="custom-time-input">
+            <span id="selected-time">Select time</span>
+            <span class="clock-icon">🕒</span>
+          </div>
+          <div class="time-dropdown" id="time-dropdown"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="form-group">
@@ -205,6 +342,86 @@
     // Show/hide recurring options based on checkbox
     document.getElementById('recurring').addEventListener('change', (e) => {
       document.getElementById('recurring-options').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    // Handle time option switching
+    document.querySelectorAll('.time-option').forEach(option => {
+      option.addEventListener('click', () => {
+        document.querySelectorAll('.time-option').forEach(opt => opt.classList.remove('active'));
+        option.classList.add('active');
+        
+        const isTimer = option.dataset.option === 'timer';
+        document.querySelector('.timer-input').classList.toggle('hidden', !isTimer);
+        document.querySelector('.datetime-input').classList.toggle('active', !isTimer);
+      });
+    });
+
+    // Generate date options for the next 30 days
+    const dateDropdown = document.getElementById('date-dropdown');
+    const selectedDate = document.getElementById('selected-date');
+    const today = new Date();
+    
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() + i);
+      const dateStr = date.toLocaleDateString();
+      const dateValue = date.toISOString().split('T')[0];
+      
+      const option = document.createElement('div');
+      option.className = 'date-option';
+      option.textContent = dateStr;
+      option.dataset.value = dateValue;
+      
+      option.addEventListener('click', () => {
+        selectedDate.textContent = dateStr;
+        selectedDate.dataset.value = dateValue;
+        dateDropdown.classList.remove('active');
+        option.classList.add('selected');
+      });
+      
+      dateDropdown.appendChild(option);
+    }
+
+    // Generate time options
+    const timeDropdown = document.getElementById('time-dropdown');
+    const selectedTime = document.getElementById('selected-time');
+    
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        const option = document.createElement('div');
+        option.className = 'time-option';
+        option.textContent = timeStr;
+        option.dataset.value = timeStr;
+        
+        option.addEventListener('click', () => {
+          selectedTime.textContent = timeStr;
+          selectedTime.dataset.value = timeStr;
+          timeDropdown.classList.remove('active');
+          option.classList.add('selected');
+        });
+        
+        timeDropdown.appendChild(option);
+      }
+    }
+
+    // Toggle dropdowns
+    document.querySelector('.custom-date-input').addEventListener('click', () => {
+      dateDropdown.classList.toggle('active');
+      timeDropdown.classList.remove('active');
+    });
+
+    document.querySelector('.custom-time-input').addEventListener('click', () => {
+      timeDropdown.classList.toggle('active');
+      dateDropdown.classList.remove('active');
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.date-picker') && !e.target.closest('.time-picker')) {
+        dateDropdown.classList.remove('active');
+        timeDropdown.classList.remove('active');
+      }
     });
   </script>
   <script src="popup.js"></script>
